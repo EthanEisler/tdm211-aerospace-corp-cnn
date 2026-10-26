@@ -2,12 +2,10 @@ import os
 from radiomana import HighwayDataModule
 
 import torch
-from torch.utils.data import WeightedRandomSampler
 from torch.utils.data import DataLoader
 
 import torch.nn as nn
 import matplotlib.pyplot as plt
-
 
 from model.cnn import CNN
 
@@ -56,3 +54,79 @@ train_loss_fn = nn.CrossEntropyLoss(
 val_loss_fn = nn.CrossEntropyLoss()
 
 
+def prep(x, y):
+    x = torch.as_tensor(x).float()
+    x = (x + 29) / 12
+    if x.ndim == 3:                      # (B, H, W) -> (B, 1, H, W)
+        x = x.unsqueeze(1)
+    return x.to(device), torch.as_tensor(y).long().to(device)
+
+train_losses, val_losses, val_accs = [], [], []
+best_val_loss = float("inf")
+
+for epoch in range(20):
+    # training
+    model.train()
+
+    running, n = 0.0, 0
+
+    # count how many samples of each class are seen this epoch
+    epoch_class_counts = torch.zeros(9, dtype=torch.long)
+
+    for x, y in train_loader:
+        # count labels before moving to GPU/CPU device if you want
+        y_cpu = torch.as_tensor(y).long()
+        epoch_class_counts += torch.bincount(
+            y_cpu,
+            minlength=9
+        )
+
+        x, y = prep(x, y)
+
+        opt.zero_grad()
+        logits = model(x)
+        loss = train_loss_fn(logits, y)
+
+        loss.backward()
+        opt.step()
+
+        running += loss.item() * y.size(0)
+        n += y.size(0)
+
+    train_losses.append(running / n)
+
+    # validation
+    model.eval()
+    running, n, correct = 0.0, 0, 0
+
+    with torch.no_grad():
+        for x, y in val_loader:
+            x, y = prep(x, y)
+
+            logits = model(x)
+
+            running += val_loss_fn(logits, y).item() * y.size(0)
+            correct += (logits.argmax(1) == y).sum().item()
+            n += y.size(0)
+
+    val_losses.append(running / n)
+    val_accs.append(correct / n)
+
+    print(
+        f"epoch {epoch+1:2d} | "
+        f"train loss {train_losses[-1]:.4f} | "
+        f"val loss {val_losses[-1]:.4f} | "
+        f"val acc {val_accs[-1]:.3f}"
+    )
+
+    print("samples seen this epoch:")
+    print(epoch_class_counts)
+
+# plot
+plt.figure(figsize=(7, 4))
+plt.plot(train_losses, label="train loss")
+plt.plot(val_losses, label="val loss")
+plt.xlabel("epoch")
+plt.ylabel("cross-entropy loss")
+plt.legend()
+plt.show()

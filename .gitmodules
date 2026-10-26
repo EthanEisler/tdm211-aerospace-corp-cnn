@@ -1,0 +1,3 @@
+[submodule "radiomana"]
+	path = radiomana
+	url = https://github.com/the-aerospace-corporation/radiomana.git
