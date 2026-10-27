@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
-from model.cnn import CNN
+from model import CNN
 
 os.environ["DSET_FIOT_HIGHWAY2"] = os.path.expanduser("~/aerospace_corp/fiot_highway2_f32")
 print(os.environ["DSET_FIOT_HIGHWAY2"])

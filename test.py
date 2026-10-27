@@ -1,5 +1,5 @@
 from radiomana import HighwayDataModule
-from model.cnn import CNN
+from model import CNN
 
 import torch
 
@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report
 
 from sklearn.metrics import balanced_accuracy_score
+
 
 def prep(x, y):
     x = torch.as_tensor(x).float()
