@@ -64,7 +64,7 @@ def prep(x, y):
 train_losses, val_losses, val_accs = [], [], []
 best_val_loss = float("inf")
 
-for epoch in range(20):
+for epoch in range(10):
     # training
     model.train()
 
@@ -119,8 +119,6 @@ for epoch in range(20):
         f"val acc {val_accs[-1]:.3f}"
     )
 
-    print("samples seen this epoch:")
-    print(epoch_class_counts)
 
 # plot
 plt.figure(figsize=(7, 4))
