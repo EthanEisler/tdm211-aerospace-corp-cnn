@@ -1,4 +1,6 @@
 import os
+from datetime import datetime, timezone
+from tempfile import mkdtemp
 from radiomana.radiomana import HighwayDataModule
 
 import torch
@@ -18,7 +20,20 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=20)
+parser.add_argument(
+    "--output-dir",
+    type=Path,
+    default=Path(__file__).resolve().parent / "runs",
+    help="Parent directory for unique training run directories (default: ./runs beside train.py).",
+)
 args = parser.parse_args()
+
+output_root = args.output_dir.expanduser().resolve()
+output_root.mkdir(parents=True, exist_ok=True)
+timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S_UTC")
+# mkdtemp creates the directory atomically, including for simultaneous jobs.
+run_dir = Path(mkdtemp(prefix=f"{timestamp}_", dir=output_root))
+print(f"Saving run outputs to {run_dir}", flush=True)
 
 DATASET_PATH = Path(__file__).resolve().parent.parent / "fiot_highway2_f32"
 
@@ -131,11 +146,11 @@ for epoch in range(args.epochs):
 
     if (val_losses[-1] < best_val_loss): 
         best_val_loss = val_losses[-1]
-        torch.save(model.state_dict(), f"best.pth")
+        torch.save(model.state_dict(), run_dir / "best.pth")
 
     torch.save(
         model.state_dict(),
-        f"cnn_epoch_{epoch+1}.pth"
+        run_dir / f"cnn_epoch_{epoch+1}.pth"
     )
 
     print(
@@ -157,7 +172,7 @@ plt.title("CNN Training and Validation Loss")
 plt.legend()
 plt.grid(True)
 
-plt.savefig("loss_plot.png", dpi=300, bbox_inches="tight")
+plt.savefig(run_dir / "loss_plot.png", dpi=300, bbox_inches="tight")
 plt.close()
 
-print("Saved loss plot to loss_plot.png")
+print(f"Saved loss plot to {run_dir / 'loss_plot.png'}")

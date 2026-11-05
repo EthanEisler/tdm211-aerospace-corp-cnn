@@ -13,6 +13,16 @@ from sklearn.metrics import balanced_accuracy_score
 import os
 
 from pathlib import Path
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--checkpoint",
+    type=Path,
+    default=Path("best.pth"),
+    help="Checkpoint to evaluate, such as runs/<run-directory>/best.pth.",
+)
+args = parser.parse_args()
 
 DATASET_PATH = Path(__file__).resolve().parent.parent / "fiot_highway2_f32"
 
@@ -64,7 +74,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load (in a new session)
 model = CNN(num_classes=9).to(device)
-model.load_state_dict(torch.load("best.pth"))
+model.load_state_dict(torch.load(args.checkpoint.expanduser(), map_location=device))
 model.eval()  # switch to inference mode if you're not training further
 
 preds, labels = evaluate(test_loader)
