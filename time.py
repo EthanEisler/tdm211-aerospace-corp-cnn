@@ -2,11 +2,18 @@ import time
 import torch
 
 import torch.nn as nn
-from radiomana import HighwayDataModule
+from radiomana.radiomana import HighwayDataModule
 
 from model import CNN
 
-dm = HighwayDataModule(batch_size=32, num_workers=0, pin_memory=False)
+import os
+
+os.environ["DSET_FIOT_HIGHWAY2"] = os.path.expanduser("~/aerospace_corp/fiot_highway2_f32")
+print(os.environ["DSET_FIOT_HIGHWAY2"])
+
+torch.set_num_threads(4)
+
+dm = HighwayDataModule(batch_size=32, num_workers=4, pin_memory=False)
 dm.setup()    # root_dir default is the env var NAME, so leave it alone
 
 train_loader = dm.train_dataloader()

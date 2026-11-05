@@ -1,4 +1,4 @@
-from radiomana import HighwayDataModule
+from radiomana.radiomana import HighwayDataModule
 from model import CNN
 
 import torch
@@ -10,10 +10,19 @@ from sklearn.metrics import classification_report
 
 from sklearn.metrics import balanced_accuracy_score
 
+import os
+
+from pathlib import Path
+
+DATASET_PATH = Path(__file__).resolve().parent.parent / "fiot_highway2_f32"
+
+os.environ["DSET_FIOT_HIGHWAY2"] = str(DATASET_PATH)
+
+torch.set_num_threads(4)
 
 def prep(x, y):
     x = torch.as_tensor(x).float()
-    x = (x + 29) / 12
+    x = (x + 32.10308225770369) / 11.103131896519098
     if x.ndim == 3:                      # (B, H, W) -> (B, 1, H, W)
         x = x.unsqueeze(1)
     return x.to(device), torch.as_tensor(y).long().to(device)
@@ -44,7 +53,7 @@ def evaluate(loader):
     return preds, labels
 
 
-dm = HighwayDataModule(batch_size=32, num_workers=0, pin_memory=False)
+dm = HighwayDataModule(batch_size=32, num_workers=4, pin_memory=False)
 dm.setup()
 
 test_loader  = dm.test_dataloader()

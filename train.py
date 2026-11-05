@@ -1,20 +1,32 @@
 import os
-from radiomana import HighwayDataModule
+from radiomana.radiomana import HighwayDataModule
 
 import torch
 from torch.utils.data import DataLoader
 
 import torch.nn as nn
+import matplotlib
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 
 from model import CNN
 
-os.environ["DSET_FIOT_HIGHWAY2"] = os.path.expanduser("~/aerospace_corp/fiot_highway2_f32")
-print(os.environ["DSET_FIOT_HIGHWAY2"])
+import argparse
+
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--epochs", type=int, default=20)
+args = parser.parse_args()
+
+DATASET_PATH = Path(__file__).resolve().parent.parent / "fiot_highway2_f32"
+
+os.environ["DSET_FIOT_HIGHWAY2"] = str(DATASET_PATH)
 
 torch.set_num_threads(4)
 
-dm = HighwayDataModule(batch_size=32, num_workers=0, pin_memory=False)
+dm = HighwayDataModule(batch_size=32, num_workers=4, pin_memory=False)
 dm.setup()    # root_dir default is the env var NAME, so leave it alone
 
 train_loader = dm.train_dataloader()
@@ -29,7 +41,7 @@ train_loader = DataLoader(
     dm.data_train,
     batch_size=32,
     shuffle=True,
-    num_workers=0,
+    num_workers=4,
     pin_memory=False
 )
 
@@ -56,7 +68,7 @@ val_loss_fn = nn.CrossEntropyLoss()
 
 def prep(x, y):
     x = torch.as_tensor(x).float()
-    x = (x + 29) / 12
+    x = (x + 32.10308225770369) / 11.103131896519098
     if x.ndim == 3:                      # (B, H, W) -> (B, 1, H, W)
         x = x.unsqueeze(1)
     return x.to(device), torch.as_tensor(y).long().to(device)
@@ -64,7 +76,7 @@ def prep(x, y):
 train_losses, val_losses, val_accs = [], [], []
 best_val_loss = float("inf")
 
-for epoch in range(10):
+for epoch in range(args.epochs):
     # training
     model.train()
 
@@ -86,6 +98,11 @@ for epoch in range(10):
         opt.zero_grad()
         logits = model(x)
         loss = train_loss_fn(logits, y)
+
+        if not torch.isfinite(loss):
+            raise RuntimeError(
+                f"Invalid training loss: {loss.item()}"
+            )
 
         loss.backward()
         opt.step()
@@ -112,6 +129,15 @@ for epoch in range(10):
     val_losses.append(running / n)
     val_accs.append(correct / n)
 
+    if (val_losses[-1] < best_val_loss): 
+        best_val_loss = val_losses[-1]
+        torch.save(model.state_dict(), f"best.pth")
+
+    torch.save(
+        model.state_dict(),
+        f"cnn_epoch_{epoch+1}.pth"
+    )
+
     print(
         f"epoch {epoch+1:2d} | "
         f"train loss {train_losses[-1]:.4f} | "
@@ -119,12 +145,19 @@ for epoch in range(10):
         f"val acc {val_accs[-1]:.3f}"
     )
 
+# Plot training and validation losses
+plt.figure(figsize=(10, 6))
 
-# plot
-plt.figure(figsize=(7, 4))
-plt.plot(train_losses, label="train loss")
-plt.plot(val_losses, label="val loss")
-plt.xlabel("epoch")
-plt.ylabel("cross-entropy loss")
+plt.plot(train_losses, label="Training Loss")
+plt.plot(val_losses, label="Validation Loss")
+
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("CNN Training and Validation Loss")
 plt.legend()
-plt.show()
+plt.grid(True)
+
+plt.savefig("loss_plot.png", dpi=300, bbox_inches="tight")
+plt.close()
+
+print("Saved loss plot to loss_plot.png")
