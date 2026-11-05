@@ -19,10 +19,30 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--checkpoint",
     type=Path,
-    default=Path("best.pth"),
-    help="Checkpoint to evaluate, such as runs/<run-directory>/best.pth.",
+    default=None,
+    help="Checkpoint to evaluate (default: best.pth from the most recent run).",
+)
+parser.add_argument(
+    "--runs-dir",
+    type=Path,
+    default=Path(__file__).resolve().parent / "runs",
+    help="Training run parent directory (default: ./runs beside train.py).",
 )
 args = parser.parse_args()
+
+if args.checkpoint is not None:
+    checkpoint = args.checkpoint.expanduser()
+else:
+    runs_dir = args.runs_dir.expanduser()
+    # train.py prefixes run directories with a sortable UTC timestamp.
+    checkpoints = [path for path in runs_dir.glob("*/best.pth") if path.is_file()]
+    if not checkpoints:
+        parser.error(f"No best.pth found in run directories under {runs_dir}")
+    checkpoint = max(checkpoints, key=lambda path: path.parent.name)
+
+if not checkpoint.is_file():
+    parser.error(f"Checkpoint does not exist: {checkpoint}")
+print(f"Loading checkpoint from {checkpoint}", flush=True)
 
 DATASET_PATH = Path(__file__).resolve().parent.parent / "fiot_highway2_f32"
 
@@ -74,7 +94,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load (in a new session)
 model = CNN(num_classes=9).to(device)
-model.load_state_dict(torch.load(args.checkpoint.expanduser(), map_location=device))
+model.load_state_dict(torch.load(checkpoint, map_location=device))
 model.eval()  # switch to inference mode if you're not training further
 
 preds, labels = evaluate(test_loader)
