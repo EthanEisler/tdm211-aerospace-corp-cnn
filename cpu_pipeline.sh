@@ -27,7 +27,7 @@ echo "=== Running time.py ==="
 python -u time.py
 
 echo "=== Training CNN for 5 epochs ==="
-python -u train.py --epochs 5
+python -u train.py --epochs 10
 
 echo "=== Running test.py ==="
 python -u test.py

@@ -62,7 +62,7 @@ train_loader = DataLoader(
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = CNN(num_classes=9).to(device)
-opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+opt = torch.optim.Adam(model.parameters(), lr=3e-4)
 
 labels = torch.tensor([
     int(dm.data_train[i][1])
@@ -77,6 +77,8 @@ class_weights = class_weights / class_weights.mean()
 train_loss_fn = nn.CrossEntropyLoss(
     weight=class_weights.to(device)
 )
+
+eval_loss_fn = nn.CrossEntropyLoss()
 
 val_loss_fn = nn.CrossEntropyLoss()
 
@@ -113,6 +115,12 @@ for epoch in range(args.epochs):
         opt.zero_grad()
         logits = model(x)
         loss = train_loss_fn(logits, y)
+
+        with torch.no_grad():
+            unweighted_loss = eval_loss_fn(logits, y)
+
+        loss.backward()
+        opt.step()
 
         if not torch.isfinite(loss):
             raise RuntimeError(
