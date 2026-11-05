@@ -63,7 +63,7 @@ def evaluate(loader):
     return preds, labels
 
 
-dm = HighwayDataModule(batch_size=32, num_workers=4, pin_memory=False)
+dm = HighwayDataModule(batch_size=32, num_workers=0, pin_memory=False)
 dm.setup()
 
 test_loader  = dm.test_dataloader()

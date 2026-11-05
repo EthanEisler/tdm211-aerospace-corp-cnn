@@ -8,12 +8,15 @@ from model import CNN
 
 import os
 
-os.environ["DSET_FIOT_HIGHWAY2"] = os.path.expanduser("~/aerospace_corp/fiot_highway2_f32")
-print(os.environ["DSET_FIOT_HIGHWAY2"])
+from pathlib import Path
+
+DATASET_PATH = Path(__file__).resolve().parent.parent / "fiot_highway2_f32"
+
+os.environ["DSET_FIOT_HIGHWAY2"] = str(DATASET_PATH)
 
 torch.set_num_threads(4)
 
-dm = HighwayDataModule(batch_size=32, num_workers=4, pin_memory=False)
+dm = HighwayDataModule(batch_size=32, num_workers=0, pin_memory=False)
 dm.setup()    # root_dir default is the env var NAME, so leave it alone
 
 train_loader = dm.train_dataloader()

@@ -41,7 +41,7 @@ os.environ["DSET_FIOT_HIGHWAY2"] = str(DATASET_PATH)
 
 torch.set_num_threads(4)
 
-dm = HighwayDataModule(batch_size=32, num_workers=4, pin_memory=False)
+dm = HighwayDataModule(batch_size=32, num_workers=0, pin_memory=False)
 dm.setup()    # root_dir default is the env var NAME, so leave it alone
 
 train_loader = dm.train_dataloader()
@@ -56,7 +56,7 @@ train_loader = DataLoader(
     dm.data_train,
     batch_size=32,
     shuffle=True,
-    num_workers=4,
+    num_workers=0,
     pin_memory=False
 )
 

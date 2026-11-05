@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/anvil/projects/tdm-2601/cnn/test.py", line 77, in <module>
+    model.load_state_dict(torch.load(args.checkpoint.expanduser(), map_location=device))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/anvil/projects/tdm-2601/cnn/.venv/lib/python3.12/site-packages/torch/serialization.py", line 1566, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/anvil/projects/tdm-2601/cnn/.venv/lib/python3.12/site-packages/torch/serialization.py", line 796, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/anvil/projects/tdm-2601/cnn/.venv/lib/python3.12/site-packages/torch/serialization.py", line 777, in __init__
+    super().__init__(open(name, mode))  # noqa: SIM115
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'best.pth'

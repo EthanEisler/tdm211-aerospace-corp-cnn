@@ -1,0 +1,17 @@
+Job ID: 21956603
+Started: Thu Nov  5 00:06:04 EST 2026
+Python 3.12.8
+=== Running time.py ===
+1.91 s/batch, ~11.8 min/epoch
+=== Training CNN for 5 epochs ===
+Saving run outputs to /anvil/projects/tdm-2601/cnn/runs/2026-11-05_05-14-46_UTC_vjw7fgef
+11865 1319 3296
+torch.Size([32, 512, 243]) torch.float32 tensor([2, 0, 2, 2, 0, 1, 0, 2])
+epoch  1 | train loss 1.2246 | val loss 0.7926 | val acc 0.741
+epoch  2 | train loss 1.0551 | val loss 0.7156 | val acc 0.749
+epoch  3 | train loss 0.9800 | val loss 0.6983 | val acc 0.750
+epoch  4 | train loss 0.9693 | val loss 0.7011 | val acc 0.754
+epoch  5 | train loss 0.9500 | val loss 1.0271 | val acc 0.578
+Saved loss plot to /anvil/projects/tdm-2601/cnn/runs/2026-11-05_05-14-46_UTC_vjw7fgef/loss_plot.png
+=== Running test.py ===
+3296
